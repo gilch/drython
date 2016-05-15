@@ -19,7 +19,7 @@ from __future__ import absolute_import, division
 from drython.statement import Print, Raise
 
 from functools import update_wrapper, partial
-from collections import deque, Mapping
+from collections import deque, Mapping, Iterable
 
 from drython.core import entuple, efset, decorator
 
@@ -27,7 +27,7 @@ from drython.core import entuple, efset, decorator
 # To avoid circular dependencies in this package,
 # stack.py shall depend only on the core.py and statement.py modules.
 
-class Stack(object):
+class Stack(Iterable):
     """
     Stack is a data structure for metaprogramming.
 
@@ -219,11 +219,7 @@ class Stack(object):
         ...     Print(ie)
         Stack underflow
         """
-        if depth:
-            res = self.pop(depth)[1:]
-        else:
-            stack, res = self.pop()
-        return res
+        return self.pop(depth)[1:] if depth else self.head[1]
 
 
 # ###
