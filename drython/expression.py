@@ -97,9 +97,9 @@ import sys
 
 from drython.statement import Atom
 
-if sys.version_info[0] == 2:
+if sys.version_info[0] == 2:  # pragma: no cover
     import Queue as Q
-else:
+else:  # pragma: no cover
     import queue as Q
 
 

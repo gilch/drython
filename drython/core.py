@@ -29,10 +29,10 @@ import sys
 from itertools import islice, chain
 from functools import wraps
 
-if sys.version_info[0] == 2:
+if sys.version_info[0] == 2:  # pragma: no cover
     # noinspection PyUnresolvedReferences
     from itertools import izip_longest as zip_longest
-else:
+else:  # pragma: no cover
     from itertools import zip_longest
 
 # This is to avoid depending on statement.Print(). A bug in Jython
@@ -520,9 +520,9 @@ def decorator(arged_decorator):
     return args_taker
 
 
-if sys.version_info[0] >= 3:
+if sys.version_info[0] >= 3:  # pragma: no cover
     exec ("class Abstract(metaclass=ABCMeta):pass")
-else:
+else:  # pragma: no cover
     class Abstract(object):
         __metaclass__ = ABCMeta
 
@@ -532,7 +532,7 @@ class SEvaluable(Abstract):
 
     @abstractmethod
     def s_eval(self, scope):
-        pass
+        pass  # pragma: no cover
 
 
 __all__ = [e for e in globals().keys()
