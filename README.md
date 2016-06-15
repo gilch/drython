@@ -32,7 +32,7 @@ Any programming language with access to the filesystem and a compiler could theo
 Python can also create strings, including strings containing Python code, which it can execute with
 the `exec()` function.
 Sometimes this approach is appropriate, indeed,
-some of the Python standard library (like namedtuple) uses this technique.
+some of the Python standard library (like `namedtuple`) uses this technique.
 But manipulating text as Python code can be difficult and error-prone.
 Compiling text is also rather slow.
 
@@ -177,7 +177,8 @@ was true
 ```
 But how do you pass in a second function for `ifTrue:ifFalse:`? Not possible?
 You actually *can* do this with decorators, you just need to decorate *two* functions.
-But decorators only accept one function, right? Just combine them with a class and decorate that.
+But decorators only accept one function, right? Don't forget that decorators also work on classes in Python.
+Combine the two with a class and decorate that.
 You don't even need an instance if you get the functions directly from the class dict:
 ```Python
 >>> @decorator
@@ -340,7 +341,8 @@ Stack((3, 3),) << <built-in function mul>
 Stack(9,)
 
 ```
-Here, `mul` is an ordinary Python function with the default interpretation.
+Here, `mul` is an ordinary Python function with the default interpretation,
+which is why you need `bi` to wrap the top two elements.
 
 The `Def` constructor takes a stack program, that is, a sequence of combinators (and any associated data).
 The resulting function (a callable instance of `Def`) uses a stack internally.

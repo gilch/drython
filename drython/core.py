@@ -524,7 +524,7 @@ def call(cls):
     """
     reinterprets a class definition as a function call
 
-    Using the magic names FN, STAR, and STARS, for the function,
+    Use the magic names FN, STAR, and STARS, for the function,
     positional arguments, and keyword arguments, respectively.
     >>> @call
     ... class spam:
@@ -554,7 +554,7 @@ def call(cls):
     1::2::3
 
     Note that '__doc__', '__module__', '__dict__', and '__weakref__'
-    are ignored, since an empty class may already have them. Use
+    are ignored, since an empty class may already have them. You can use
     STARS if you must pass ignored or magic names as arguments.
     >>> @call
     ... class spam:
@@ -582,23 +582,13 @@ def call(cls):
     [7, 8, 10, 11, 13, 14]
     """
     args = []
-    kwargs = {}
-    kwargs.update(cls.__dict__)
-    for s in ('__doc__','__module__','__dict__','__weakref__'):
-        if s in kwargs:
-            del kwargs[s]
+    kwargs = dict(cls.__dict__)
     FN = kwargs['FN']
-    del kwargs['FN']
-    STAR = ()
-    if 'STAR' in kwargs:
-        STAR = kwargs['STAR']
-        del kwargs['STAR']
-    STARS = Empty
-    if 'STARS' in kwargs:
-        STARS = kwargs['STARS']
-        del kwargs['STARS']
+    STAR = kwargs.get('STAR', ())
+    STARS = kwargs.get('STARS', Empty)
     i = 0
     try:
+        # save and remove positional arguments from kwargs
         while True:
             s = '_' + str(i)
             args.append(kwargs[s])
@@ -606,6 +596,13 @@ def call(cls):
             i += 1
     except KeyError:
         pass
+    # remove ignored and magic names from kwargs
+    for s in ('__doc__','__module__','__dict__','__weakref__',
+              'FN','STARS','STAR'):
+        try:
+            del kwargs[s]
+        except KeyError:
+            pass
     kwargs.update(STARS)
     return FN(*chain(args,STAR),**kwargs)
 
