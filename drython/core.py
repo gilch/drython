@@ -520,6 +520,96 @@ def decorator(arged_decorator):
     return args_taker
 
 
+def call(cls):
+    """
+    reinterprets a class definition as a function call
+
+    Using the magic names FN, STAR, and STARS, for the function,
+    positional arguments, and keyword arguments, respectively.
+    >>> @call
+    ... class spam:
+    ...   FN = Print
+    ...   STAR = (1,2,3)
+    ...   STARS = dict(sep='::')
+    1::2::3
+    >>> Print(*(1,2,3), **dict(sep='::'))
+    1::2::3
+
+    Often args you would normally pass positionally have keyword
+    names that you can use instead, but sometimes they don't.
+    Class namespaces are dictionaries, and thus unordered.
+    Use an underscore-prefixed number for individual positional args.
+
+    Non-magic names become individual keyword args.
+    >>> @call
+    ... class spam: FN=Print; _0=1; _1=2; _2=3; sep='::'
+    1::2::3
+
+    STARS overrides keyword arguments,
+    and STAR appends positional arguments
+    >>> @call
+    ... class spam:
+    ...   FN=Print; _0=1; _1=2; sep = ', '
+    ...   STAR=(3,); STARS=dict(sep='::')
+    1::2::3
+
+    Note that '__doc__', '__module__', '__dict__', and '__weakref__'
+    are ignored, since an empty class may already have them. Use
+    STARS if you must pass ignored or magic names as arguments.
+    >>> @call
+    ... class spam:
+    ...   def FN(__doc__, FN):
+    ...     return __doc__ - FN
+    ...   STARS = dict(__doc__=44, FN=2)
+
+    A call class results in an assignment to the class name.
+    >>> spam
+    42
+
+    This means that you can usefully nest call classes, using the result
+    of one call class directly as the argument to another call class.
+    You can also use function definitions with magic names.
+    >>> @call
+    ... class spam:
+    ...   FN = list
+    ...   @call
+    ...   class _0:
+    ...     FN = filter
+    ...     def _0(x):
+    ...       return x > 5 and x % 3 > 0
+    ...     _1 = range(16)
+    >>> spam
+    [7, 8, 10, 11, 13, 14]
+    """
+    args = []
+    kwargs = {}
+    kwargs.update(cls.__dict__)
+    for s in ('__doc__','__module__','__dict__','__weakref__'):
+        if s in kwargs:
+            del kwargs[s]
+    FN = kwargs['FN']
+    del kwargs['FN']
+    STAR = ()
+    if 'STAR' in kwargs:
+        STAR = kwargs['STAR']
+        del kwargs['STAR']
+    STARS = Empty
+    if 'STARS' in kwargs:
+        STARS = kwargs['STARS']
+        del kwargs['STARS']
+    i = 0
+    try:
+        while True:
+            s = '_' + str(i)
+            args.append(kwargs[s])
+            del kwargs[s]
+            i += 1
+    except KeyError:
+        pass
+    kwargs.update(STARS)
+    return FN(*chain(args,STAR),**kwargs)
+
+
 if sys.version_info[0] >= 3:  # pragma: no cover
     exec ("class Abstract(metaclass=ABCMeta):pass")
 else:  # pragma: no cover
