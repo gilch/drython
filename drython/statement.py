@@ -99,7 +99,6 @@ See stack.Def and macros.L1 for two alternative `def` substitutes.
 from __future__ import absolute_import, division, print_function
 
 from functools import wraps
-from itertools import islice
 from collections import Mapping
 from importlib import import_module
 import sys
@@ -142,8 +141,11 @@ def _private():
         Pass can substitute for `pass` where a statement substitution
         requires a thunk. (A thunk is a 0-arg func.) Pass() also
         works anywhere `pass` does, because None does, and in some
-        places `pass` does not, like
-        >>> (lambda: Pass())()
+        places `pass` does not.
+        >>> Pass
+        Pass
+        >>> print(Pass())
+        None
         """
         __slots__ = ()
 
@@ -1048,7 +1050,7 @@ def dest(targets, values, bindings=Ellipsis):
     >>> dest(dict(a=0,b=1),[10,11]) == dict(a=10,b=11)
     True
 
-    In Mappings, dict is for defaults. (all still works)
+    In Mappings, dict: is for defaults. (all: also works in Mappings)
     >>> dest({'a':'A','b':'B','c':'C',dict:dict(a=2,b=3),all:'N'},
     ...     dict(A=5,C=6)) == dict(a=5,b=3,c=6,N=dict(A=5,C=6))
     True
@@ -1066,57 +1068,83 @@ def dest(targets, values, bindings=Ellipsis):
     if bindings is Ellipsis:
         bindings = {}
     if isinstance(targets, Mapping):
-        defaults = targets.get(dict, Empty)
-        for left, right in targets.items():
-            if isinstance(left, str):
-                try:
-                    bindings[left] = values[right]
-                except LookupError:
-                    bindings[left] = defaults[left]
-            elif left is all:
-                bindings[right] = values
-            elif left is dict:
-                pass
-            elif left is str:
-                for s in right:
-                    bindings[s] = values[s]
-            else:
-                dest(left, right, bindings)
+        _handle_mapping(bindings, targets, values)
     else:
-        try:
-            ivalues = iter(values)
-            itargets = iter(targets)
-            name = next(itargets)
-            if name is all:
-                bindings[next(itargets)] = values
-                name = next(itargets)
-            while True:
-                if name is list:
-                    # this would be easy if list was only allowed at
-                    # the end, like Clojure. but Python3's starred
-                    # binding can be in the middle.
-                    name = next(itargets)
-                    targets = tuple(itargets)  # to count remaining
-                    values = list(ivalues)
-                    sublist = values[:len(values) - len(targets)]
-                    itargets = iter(targets)
-                    ivalues = iter(values[len(sublist):])
-                    bindings[name] = sublist
-                else:
-                    try:
-                        val = next(ivalues)
-                    except StopIteration:
-                        raise ValueError(
-                            "not enough values to unpack for target %s" %
-                            repr(name))
-                    if isinstance(name, str):
-                        bindings[name] = val
-                    else:
-                        dest(name, val, bindings)
-                name = next(itargets)
-        except StopIteration:
-            pass
+        _handle_iterable(bindings, targets, values)
     return bindings
+
+
+def _handle_mapping(bindings, targets, values):
+    defaults = targets.get(dict, Empty)
+    for left, right in targets.items():
+        if isinstance(left, str):
+            try:
+                bindings[left] = values[right]
+            except LookupError:
+                bindings[left] = defaults[left]
+        elif left is all:
+            bindings[right] = values
+        elif left is dict:
+            pass
+        elif left is str:
+            for s in right:
+                bindings[s] = values[s]
+        else:
+            dest(left, right, bindings)
+
+
+def _handle_iterable(bindings, targets, values):
+    ivalues = iter(values)
+    itargets = iter(targets)
+    saw_list = False
+    try:
+        name = _next_target(itargets, ivalues)
+        if name is all:
+            bindings[next(itargets)] = values
+            name = _next_target(itargets, ivalues)
+        while True:
+            if name is list:
+                if saw_list:
+                    raise ValueError("duplicate list directive in dest.")
+                itargets, ivalues = _handle_list(
+                    bindings, itargets, ivalues)
+                saw_list = True
+            else:
+                try:
+                    val = next(ivalues)
+                except StopIteration:
+                    raise ValueError(
+                        "not enough values to unpack for target %s" %
+                        repr(name))
+                if isinstance(name, str):
+                    bindings[name] = val
+                else:
+                    dest(name, val, bindings)
+            name = _next_target(itargets, ivalues)
+    except StopIteration:
+        pass
+
+
+def _next_target(itargets, ivalues):
+    try:
+        return next(itargets)
+    except StopIteration:
+        next(ivalues)
+        raise ValueError("too many values to unpack")
+
+
+def _handle_list(bindings, itargets, ivalues):
+    # this would be easy if list was only allowed at
+    # the end, like Clojure. but Python3's starred
+    # binding can be in the middle.
+    name = next(itargets)
+    targets = tuple(itargets)  # to count remaining
+    values = list(ivalues)
+    sublist = values[:len(values) - len(targets)]
+    itargets = iter(targets)
+    ivalues = iter(values[len(sublist):])
+    bindings[name] = sublist
+    return itargets, ivalues
 
 
 __all__ = [e for e in globals().keys()
