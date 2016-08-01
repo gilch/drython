@@ -567,8 +567,16 @@ def call(cls):
     42
 
     This means that you can usefully nest call classes, using the result
-    of one call class directly as the argument to another call class.
-    You can also use function definitions with magic names.
+    of an inner call class directly as the argument to the outer call
+    class. You can also use function definitions with magic names.
+
+    Here is a nested function call
+    >>> spam = list(filter(lambda x: x>5 and x%3>0,range(16)))
+    >>> spam
+    [7, 8, 10, 11, 13, 14]
+
+    And the equivalent as nested call classes
+    >>> del spam
     >>> @call
     ... class spam:
     ...   FN = list

@@ -28,6 +28,7 @@ This includes
 `Atom` (thread-locked updates and nonlocal assignment emulation),
 `Box` (simpler nonlocals for Python 2, but not thread safe),
 `Bind` (sets and deletes items and attrs)
+`DoTo` (method cascade to a single object)
 `let` (local assignment emulation and Return() support),
 `do` (for side effects in expressions, especially lambdas),
 `loop` (optimized tail-call recursion loops)
@@ -82,7 +83,7 @@ is the same as
 
 A substitute for `def` is not provided here, but `lambda` is a viable
 alternative now that statements are available as expressions.
-Multiple sequential expressions are available in lambda via do.
+Multiple sequential expressions are available in lambda via `do`.
 Multiple exits are available via let/Return:
 
     lambda ...: let(lambda:(
@@ -949,6 +950,54 @@ class Bind(object):
             to.__delitem__(item) if value is _sentinel
             else to.__setitem__(item, value),
             to)
+
+
+class DoTo(object):
+    """
+    Smalltalk-style message cascading, named for the similar Clojure
+    macro. DoTo can eliminate a common use of local variables.
+
+    >>> (DoTo([42,-12])  # start a method cascade on [42,-12]
+    ...  .append(2)
+    ...  .append(3)
+    ...  .append(1)
+    ...  .sort()
+    ...  )()  # call to unwrap if you need the underlying object
+    [-12, 1, 2, 3, 42]
+
+    DoTo wraps an object's methods to make them return self.
+    This turns chained method calls into a cascade.
+    You can get at the underlying object by calling the DoTo wrapper.
+    (You may omit this if you only need side effects.)
+    A DoTo instance is often used to initialize a complex object.
+
+    The verbose equivalent without DoTo:
+    >>> temp = [42,-12]
+    >>> temp.append(2)
+    >>> temp.append(3)
+    >>> temp.append(1)
+    >>> temp.sort()
+    >>> temp
+    [-12, 1, 2, 3, 42]
+    >>> del temp
+
+    The DoTo version is an expression, so it is allowed anywhere an
+    expression is, but the verbose temp version requires an assignment
+    statement.
+    """
+    def __init__(self, target):
+        self.yourself = target
+
+    def __getattribute__(self,name):
+        wrapped = getattr(object.__getattribute__(self,'yourself'),name)
+        @wraps(wrapped)
+        def wrapper(*a,**kw):
+            wrapped(*a,**kw)
+            return self
+        return wrapper
+
+    def __call__(self):
+        return object.__getattribute__(self,'yourself')
 
 
 def do(*body):
