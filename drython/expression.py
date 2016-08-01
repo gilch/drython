@@ -20,6 +20,9 @@ This module exports a set of expression replacement functions.
 `generator` substitutes for `yield from` and `yield` in cases where
 it would be incompatible with the statement module.
 
+`Elif/Else`substitutes for nested `if`/`else`. (The expression form of
+`if` lacks `elif`.)
+
 Operator functions are already available in Python's included
 `operator` module, so they are not provided here.
 
@@ -95,7 +98,8 @@ import weakref
 from functools import wraps
 import sys
 
-from drython.statement import Atom
+from core import efset
+from drython.statement import Atom, Pass
 
 if sys.version_info[0] == 2:  # pragma: no cover
     import Queue as Q
@@ -332,4 +336,50 @@ def generator(f):
         return the_generator
 
     return wrapper
+
+
+# a Smalltalk-like implementation of Lisp's COND.
+# noinspection PyPep8Naming
+def Elif(*thunks, **Else):
+    """
+    Cascading if.
+
+    The args are paired. Pairs are checked in order. If the left
+    evaluates to true, the right is called. If all are false, Else is
+    called.
+    >>> Elif()  # Else defaults to Pass
+    >>> Elif(Pass, lambda:1)  # Pass() is None
+    >>> Elif(lambda:True, lambda:1)
+    1
+    >>> Elif(Pass, lambda:Print('a'),
+    ...      Else=lambda:Print('b'))
+    b
+    >>> Elif(Pass, lambda:Print('a'),
+    ...      Pass, lambda:Print('b'))
+    >>> Elif(lambda:True, lambda:Print('a'),
+    ...      Pass, lambda:Print('b'))
+    a
+    >>> Elif(Pass, lambda:1,
+    ...      lambda:Print('a'), lambda:2,  # head has to be checked.
+    ...      Pass, lambda:3,
+    ...      Else=lambda:4)
+    a
+    4
+    >>> Elif(lambda:Print('a'), lambda:2,  # Print returns None
+    ...      lambda:3, lambda:4,  # nonzero is truthy
+    ...      lambda:Print('skipped?'), lambda:Print('skipped?'),
+    ...      Else=lambda:Print('skipped?'))
+    a
+    4
+
+    Recall that `a if b else c` is already an expression. These can
+    be nested, but Elif may be easier to use for deep nesting.
+    """
+    assert len(thunks) % 2 == 0
+    assert set(Else.keys()) <= efset('Else')
+    for predicate, thunk in zip(*2 * (iter(thunks),)):
+        if predicate():
+            return thunk()
+    return Else.get('Else', Pass)()
+
 

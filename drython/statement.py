@@ -36,7 +36,7 @@ This includes
 plus the 13 reserved word statement replacements.
 
 Despite convention for Python function names, the 13 replacements
-`Assert`, `Break`, `Continue`, `Elif/Else`, `For/Else`, `Import/From`,
+`Assert`, `Break`, `Continue`, `For/Else`, `Import/From`,
 `Pass`, `Print`, `Raise/From`, `let/Return`, `Try/Except/Else/Finally`,
 `With`, and `While/Else` are capitalized to avoid conflicts with the
 original Python reserved word.
@@ -280,51 +280,6 @@ class Continue(LabeledBreak):
     1
     2
     """
-
-
-# a Smalltalk-like implementation of Lisp's COND.
-# noinspection PyPep8Naming
-def Elif(*thunks, **Else):
-    """
-    Cascading if.
-
-    The args are paired. Pairs are checked in order. If the left
-    evaluates to true, the right is called. If all are false, Else is
-    called.
-    >>> Elif()  # Else defaults to Pass
-    >>> Elif(Pass, lambda:1)  # Pass() is None
-    >>> Elif(lambda:True, lambda:1)
-    1
-    >>> Elif(Pass, lambda:Print('a'),
-    ...      Else=lambda:Print('b'))
-    b
-    >>> Elif(Pass, lambda:Print('a'),
-    ...      Pass, lambda:Print('b'))
-    >>> Elif(lambda:True, lambda:Print('a'),
-    ...      Pass, lambda:Print('b'))
-    a
-    >>> Elif(Pass, lambda:1,
-    ...      lambda:Print('a'), lambda:2,  # head has to be checked.
-    ...      Pass, lambda:3,
-    ...      Else=lambda:4)
-    a
-    4
-    >>> Elif(lambda:Print('a'), lambda:2,  # Print returns None
-    ...      lambda:3, lambda:4,  # nonzero is truthy
-    ...      lambda:Print('skipped?'), lambda:Print('skipped?'),
-    ...      Else=lambda:Print('skipped?'))
-    a
-    4
-
-    Recall that `a if b else c` is already an expression. These can
-    be nested, but Elif may be easier to use for deep nesting.
-    """
-    assert len(thunks) % 2 == 0
-    assert set(Else.keys()) <= efset('Else')
-    for predicate, thunk in zip(*2 * (iter(thunks),)):
-        if predicate():
-            return thunk()
-    return Else.get('Else', Pass)()
 
 
 # noinspection PyPep8Naming,PyShadowingNames
