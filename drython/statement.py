@@ -937,21 +937,43 @@ class DoTo(object):
     >>> del temp
 
     The DoTo version is an expression, so it is allowed anywhere an
-    expression is, but the verbose temp version requires an assignment
-    statement.
+    expression is (even nested in another DoTo), but the verbose temp
+    version requires an assignment statement.
+
+    DoTo can also use unbound methods, like Clojure:
+    >>> (DoTo([])
+    ...  (list.append, 6)  # the [] is the first argument
+    ...  (Print)  # a function is treated like an unbound method
+    ...  (list.append, 2)
+    ...  .append(9)  # freely intermix bound/unbound methods
+    ...  (Print))  # didn't unwrap this time
+    [6]
+    [6, 2, 9]
+    DoTo([6, 2, 9])
     """
+    __slots__ = 'yourself'
     def __init__(self, target):
         self.yourself = target
 
-    def __getattribute__(self,name):
-        wrapped = getattr(object.__getattribute__(self,'yourself'),name)
+    def __getattribute__(self, name):
+        wrapped = getattr(DoTo._your(self),name)
         @wraps(wrapped)
         def wrapper(*a,**kw):
             wrapped(*a,**kw)
             return self
         return wrapper
 
-    def __call__(self):
+    def __call__(self, func=None, *a, **kw):
+        if func:
+            func(DoTo._your(self), *a, **kw)
+            return self
+        else:
+            return DoTo._your(self)
+
+    def __repr__(self):
+        return 'DoTo({})'.format(DoTo._your(self))
+
+    def _your(self):
         return object.__getattribute__(self,'yourself')
 
 

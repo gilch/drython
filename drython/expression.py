@@ -99,7 +99,7 @@ from functools import wraps
 import sys
 
 from core import efset
-from drython.statement import Atom, Pass
+from drython.statement import Atom, Pass, Print
 
 if sys.version_info[0] == 2:  # pragma: no cover
     import Queue as Q
