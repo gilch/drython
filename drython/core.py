@@ -149,7 +149,8 @@ del _private
 
 def star(func):
     """
-    Converts a multiple-argument function to a function of one iterable.
+    Converts a potentially multiple-argument function to a function of
+    one iterable.
     >>> nums = [1, 2, 3]
     >>> Print(*nums)
     1 2 3
@@ -162,6 +163,7 @@ def star(func):
 def unstar(func):
     """
     Converts a function of one iterable to a function of its elements.
+    The inverse of star().
     >>> list((1, 2, 3))
     [1, 2, 3]
     >>> unstar(list)(1, 2, 3)
@@ -172,7 +174,8 @@ def unstar(func):
 
 def stars(func):
     """
-    Converts a multiple-argument function to a function of one mapping.
+    Converts a potentially multiple-argument function to a function of
+    one mapping.
     >>> cba = dict(c='C', b='B', a='A')
     >>> test = (lambda a, b, c: Print(a, b, c))
     >>> test(**cba)
@@ -193,64 +196,6 @@ def unstars(func):
     {'a': 'A'}
     """
     return lambda **kwargs: func(kwargs)
-
-
-# entuple = unstar(tuple)
-def entuple(*args):
-    """
-    returns args as a tuple
-    >>> entuple(1, 2, 3)
-    (1, 2, 3)
-    """
-    return tuple(args)
-
-
-# enlist = unstar(list)
-def enlist(*args):
-    """
-    returns args as a list
-    >>> enlist(1, 2, 3)
-    [1, 2, 3]
-    """
-    return list(args)
-
-
-# enset = unstar(set)
-def enset(*args):
-    """
-    returns args as a set
-    >>> enset(1, 2, 3) == {1, 2, 3}
-    True
-    """
-    return set(args)
-
-
-# efset = unstar(frozenset)
-def efset(*args):
-    """
-    return args as a frozenset
-    >>> efset(1, 2, 3) == frozenset([1, 2, 3])
-    True
-    """
-    return frozenset(args)
-
-
-def edict(*args, **kwargs):
-    """
-    pairs args and makes a dictionary with them
-    >>> edict(1, 2)
-    {1: 2}
-    >>> edict(1, 2,  3, 4,  5, 6)[3]
-    4
-    >>> edict(1, 2,
-    ...       3, 4) == {1: 2, 3: 4}
-    True
-
-    kwargs become string keys
-    >>> edict(1,2, c=3) == {1:2, 'c':3}
-    True
-    """
-    return dict(chain(partition(args), kwargs.items()))
 
 
 _sentinel = object()
@@ -393,6 +338,17 @@ def delitem(obj, index):
     return obj
 
 
+# def update(mapping, **bindings):
+#     """
+#     >>> spam = lambda:None
+#     >>> update(spam.__dict__, foo=1, bar=2)
+#     >>> spam.foo
+#     >>> spam.bar
+#     """
+#     mapping.update(bindings)
+#     return mapping
+#
+#
 # def funcall(func, *args, **kwargs):
 #     """
 #     Immediately calls the function with the given arguments.

@@ -21,11 +21,12 @@ from drython.statement import Print, Raise
 from functools import update_wrapper, partial
 from collections import deque, Mapping, Iterable
 
-from drython.core import entuple, efset, decorator
+from drython.expression import entuple, efset
+from drython.core import decorator
 
 
 # To avoid circular dependencies in this package,
-# stack.py shall depend only on the core.py and statement.py modules.
+# only combinator.py depends on stack.py
 
 class Stack(Iterable):
     """

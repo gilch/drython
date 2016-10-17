@@ -25,7 +25,7 @@ from itertools import permutations
 import collections
 import operator
 
-from drython.core import enlist
+from drython.expression import enlist
 from drython.stack import Combinator, Phrase, Stack
 
 _exclude_from__all__ = set(globals().keys())

@@ -27,7 +27,7 @@ Quote with `-`.
 `_S(foo)` is an alias for `S(quasiquote, S(foo))`.
 The `~` unquotes as in Clojure; `+` unquotes and splices.
 """
-# s_expression may safely depend on .core and .statement
+# s_expression may safely depend on .core, .statement, and .expression
 
 from __future__ import absolute_import, division
 from itertools import chain, count
@@ -51,7 +51,8 @@ if sys.version_info[0] == 2:
 else:
     from collections import UserString
 
-from drython.core import Empty, entuple, edict
+from drython.core import Empty
+from drython.expression import entuple, edict
 from drython.statement import Atom, Raise, Print
 
 
@@ -183,7 +184,7 @@ class SExpression(Mapping, SEvaluable, SQuotable):
       'test')]
 
     This does, since it uses another S-expression to make the list.
-    >>> from drython.core import enlist
+    >>> from drython.expression import enlist
     >>> S(identity,S(enlist,S(Print,'test')))()
     test
     [None]

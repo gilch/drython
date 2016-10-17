@@ -19,10 +19,10 @@ from functools import wraps
 from itertools import chain
 
 from drython.statement import Print
-from drython.core import partition, identity, entuple, SEvaluable, interleave, apply
+from drython.core import partition, identity, SEvaluable, interleave, apply
 from drython.s_expression import _S, S, macro, s_eval_in_scope, flatten_sexpr, gensym, Symbol
 from drython.statement import do, Raise
-from drython.expression import Elif
+from drython.expression import Elif, entuple
 
 __test__ = {}
 

@@ -104,7 +104,7 @@ from collections import Mapping
 from importlib import import_module
 import sys
 
-from drython.core import entuple, efset, partition, Empty
+from drython.core import partition, Empty
 
 
 class LabeledBreak(BaseException):
@@ -122,9 +122,9 @@ class LabeledBreak(BaseException):
 
 class LabeledResultBreak(LabeledBreak):
     def __init__(self, result=None, *results, **label):
-        assert set(label.keys()) <= efset('label')
+        assert set(label.keys()) <= {'label'}
         if results:
-            self.result = entuple(result, *results)
+            self.result = (result,) + results
         else:
             self.result = result
         LabeledBreak.__init__(self, label.get('label', None))
@@ -371,11 +371,11 @@ def Import(item, *items, **package_From):
     >>> Stack((1,2),sub).peek()
     -1
     """
-    assert set(package_From.keys()) <= efset('package', 'From')
+    assert set(package_From.keys()) <= {'package', 'From'}
     package = package_From.get('package', None)
     From = package_From.get('From', None)
     if items:
-        items = entuple(item, *items)
+        items = (item,) + items
     if package:
         import_module(package)  # really necessary?
     if From:
@@ -586,7 +586,7 @@ def Try(thunk, *Except, **ElseFinally):
 
     to catch any exception, like the final `except:`, use BaseException.
     """
-    assert set(ElseFinally.keys()) <= efset('Else', 'Finally')
+    assert set(ElseFinally.keys()) <= {'Else', 'Finally'}
     assert len(Except) % 2 == 0
     assert all(issubclass(x, BaseException)
                for x, c in partition(Except))

@@ -26,6 +26,9 @@ it would be incompatible with the statement module.
 Operator functions are already available in Python's included
 `operator` module, so they are not provided here.
 
+`entuple`, `enlist`, `enset`, and `edict` subsitute for tuple, list,
+set, and dictionary displays. `efset` makes a frozenset.
+
 Unlike statements, expressions already work in lambdas and eval,
 so why replace them too?
 
@@ -55,7 +58,7 @@ function call version is more natural for s-expressions
 3
 
 A more advanced case with generator expressions.
->>> from core import entuple; from macro import L1
+>>> from expression import entuple; from macro import L1
 
 Direct use acts like a constant
 >>> S(identity,[(x,y) for x in (1,2) for y in 'abc'])()
@@ -96,15 +99,74 @@ Python lacks, like whilst.
 import threading
 import weakref
 from functools import wraps
+from itertools import chain
 import sys
 
-from core import efset
+from drython.core import partition
 from drython.statement import Atom, Pass, Print
 
 if sys.version_info[0] == 2:  # pragma: no cover
     import Queue as Q
 else:  # pragma: no cover
     import queue as Q
+
+
+# entuple = unstar(tuple)
+def entuple(*args):
+    """
+    returns args as a tuple
+    >>> entuple(1, 2, 3)
+    (1, 2, 3)
+    """
+    return tuple(args)
+
+
+# enlist = unstar(list)
+def enlist(*args):
+    """
+    returns args as a list
+    >>> enlist(1, 2, 3)
+    [1, 2, 3]
+    """
+    return list(args)
+
+
+# enset = unstar(set)
+def enset(*args):
+    """
+    returns args as a set
+    >>> enset(1, 2, 3) == {1, 2, 3}
+    True
+    """
+    return set(args)
+
+
+# efset = unstar(frozenset)
+def efset(*args):
+    """
+    return args as a frozenset
+    >>> efset(1, 2, 3) == frozenset([1, 2, 3])
+    True
+    """
+    return frozenset(args)
+
+
+def edict(*args, **kwargs):
+    """
+    pairs args and makes a dictionary with them
+    >>> edict(1, 2)
+    {1: 2}
+    >>> edict(1, 2,  3, 4,  5, 6)[3]
+    4
+    >>> edict(1, 2,
+    ...       3, 4) == {1: 2, 3: 4}
+    True
+
+    kwargs become string keys
+    >>> edict(1,2, c=3) == {1:2, 'c':3}
+    True
+    """
+    return dict(chain(partition(args), kwargs.items()))
 
 
 def In(target_list, comp_lambda):
