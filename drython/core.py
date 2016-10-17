@@ -174,7 +174,7 @@ def unstar(func):
 
 def stars(func):
     """
-    Converts a potentially multiple-argument function to a function of
+    Converts a keyword-argument function to a function of
     one mapping.
     >>> cba = dict(c='C', b='B', a='A')
     >>> test = (lambda a, b, c: Print(a, b, c))
@@ -197,6 +197,25 @@ def unstars(func):
     """
     return lambda **kwargs: func(kwargs)
 
+
+def allstars(func):
+    """
+    Converts any function to a standard function signature of one
+    iterable & one mapping. Combines the effects of star() and stars().
+    >>> allstars(Print)([1,2,3], {'sep':'::'})
+    1::2::3
+    """
+    return lambda args, kwargs: func(*args,**kwargs)
+
+#
+# def unallstars(func):
+#     """
+#     Converts a function of one iterable and one mapping to a function of
+#     positional and keyword arguments. The inverse of allstars().
+#     >>>
+#     """
+#     return lambda *args, **kwargs: func(args,kwargs)
+#
 
 _sentinel = object()
 
