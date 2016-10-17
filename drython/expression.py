@@ -27,7 +27,8 @@ Operator functions are already available in Python's included
 `operator` module, so they are not provided here.
 
 `entuple`, `enlist`, `enset`, and `edict` subsitute for tuple, list,
-set, and dictionary displays. `efset` makes a frozenset.
+set, and dictionary displays. `efset` makes a frozenset, and `ordict`
+makes an OrderedDict.
 
 Unlike statements, expressions already work in lambdas and eval,
 so why replace them too?
@@ -98,6 +99,7 @@ Python lacks, like whilst.
 
 import threading
 import weakref
+from collections import OrderedDict
 from functools import wraps
 from itertools import chain
 import sys
@@ -167,6 +169,15 @@ def edict(*args, **kwargs):
     True
     """
     return dict(chain(partition(args), kwargs.items()))
+
+
+def ordict(*args):
+    """
+    pairs args (in order) and makes an OrderedDict with them
+    >>> ordict(1,2, 3,4)
+    OrderedDict([(1, 2), (3, 4)])
+    """
+    return OrderedDict(partition(args))
 
 
 def In(target_list, comp_lambda):
